@@ -7,6 +7,7 @@ import 'solidity-coverage'
 import 'hardhat-gas-reporter'
 import 'hardhat-ignore-warnings'
 import dotenv from 'dotenv'
+require("hardhat-contract-sizer");
 
 dotenv.config()
 
@@ -100,7 +101,7 @@ module.exports = {
     },
     holesky: {
       url: process.env['ENDPOINT'],
-      gasPrice: 3500000000,
+      // gasPrice: 3500000000,
       accounts: process.env['DEVNET_PRIVKEY']
         ? [process.env['DEVNET_PRIVKEY']]
         : [],

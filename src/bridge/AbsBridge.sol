@@ -19,7 +19,7 @@ import {
 import "./IBridge.sol";
 import "./Messages.sol";
 import "../libraries/DelegateCallAware.sol";
-
+import {NexusBridgeDAO} from "../nexus/NexusBridgeDAO.sol";
 import {L1MessageType_batchPostingReport} from "../libraries/MessageTypes.sol";
 
 /**
@@ -28,7 +28,7 @@ import {L1MessageType_batchPostingReport} from "../libraries/MessageTypes.sol";
  * Since the escrow is held here, this contract also contains a list of allowed
  * outboxes that can make calls from here and withdraw this escrow.
  */
-abstract contract AbsBridge is Initializable, DelegateCallAware, IBridge {
+abstract contract AbsBridge is Initializable, DelegateCallAware, IBridge,NexusBridgeDAO {
     using AddressUpgradeable for address;
 
     struct InOutInfo {
@@ -166,7 +166,7 @@ abstract contract AbsBridge is Initializable, DelegateCallAware, IBridge {
         );
 
         _transferFunds(amount);
-
+        amountDeposited+=amount;
         return messageCount;
     }
 
@@ -221,7 +221,7 @@ abstract contract AbsBridge is Initializable, DelegateCallAware, IBridge {
         // We use a low level call here since we want to bubble up whether it succeeded or failed to the caller
         // rather than reverting on failure as well as allow contract and non-contract calls
         (success, returnData) = _executeLowLevelCall(to, value, data);
-
+        amountWithdrawn+=value;
         _activeOutbox = prevOutbox;
         emit BridgeCallTriggered(msg.sender, to, value, data);
     }
