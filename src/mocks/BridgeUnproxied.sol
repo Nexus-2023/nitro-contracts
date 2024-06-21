@@ -10,6 +10,7 @@ import {BadSequencerMessageNumber} from "../libraries/Error.sol";
 import "../bridge/Bridge.sol";
 
 contract BridgeUnproxied is Bridge {
+    uint256 constant public NewValue=100;
     constructor() {
         _activeOutbox = EMPTY_ACTIVEOUTBOX;
         rollup = IOwnable(msg.sender);

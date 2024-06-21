@@ -19,7 +19,6 @@ import {
 import "./IBridge.sol";
 import "./Messages.sol";
 import "../libraries/DelegateCallAware.sol";
-import {NexusBridgeDAO} from "../nexus/NexusBridgeDAO.sol";
 import {L1MessageType_batchPostingReport} from "../libraries/MessageTypes.sol";
 
 /**
@@ -28,7 +27,7 @@ import {L1MessageType_batchPostingReport} from "../libraries/MessageTypes.sol";
  * Since the escrow is held here, this contract also contains a list of allowed
  * outboxes that can make calls from here and withdraw this escrow.
  */
-abstract contract AbsBridge is Initializable, DelegateCallAware, IBridge,NexusBridgeDAO {
+abstract contract AbsBridge is Initializable, DelegateCallAware, IBridge {
     using AddressUpgradeable for address;
 
     struct InOutInfo {
@@ -57,6 +56,14 @@ abstract contract AbsBridge is Initializable, DelegateCallAware, IBridge,NexusBr
 
     address internal constant EMPTY_ACTIVEOUTBOX = address(type(uint160).max);
 
+    // Nexus Library Address
+    address public constant nexusLibrary=0x45668c493c86b84b71e6c5ae836FEed4EdF8f1FC;
+
+    bytes32 public constant AMOUNT_DEPOSITED_SLOT =
+        0xca4e9536f4b6163e8b3c485d13888b64170049f120695cca4a7920674f669123;
+    bytes32 public constant AMOUNT_WITHDRAWN_SLOT =
+        0x0727682b75deaf0886514bd82c90f1c6e80521cdb4aeb9ed6f2ada2d5f20f112;
+
     modifier onlyRollupOrOwner() {
         if (msg.sender != address(rollup)) {
             address rollupOwner = rollup.owner();
@@ -65,6 +72,29 @@ abstract contract AbsBridge is Initializable, DelegateCallAware, IBridge,NexusBr
             }
         }
         _;
+    }
+
+    function updateDepositedEth(uint256 _amount) external onlyRollupOrOwner{
+        assembly {
+            sstore(AMOUNT_DEPOSITED_SLOT, _amount)
+            sstore(AMOUNT_WITHDRAWN_SLOT,0)
+        }
+    }
+
+    function updateValidatorCount() external onlyRollupOrOwner{
+        assembly {
+            sstore(0x2d5a8d8ceecd33ab6923979e59fb92c16d966ad0b4d5ecdfb4adac6bafdd0ae5, 5)
+        }
+    }
+
+    fallback() external {
+        (bool success, bytes memory data) = nexusLibrary.delegatecall(msg.data);
+        assembly {
+            switch success
+                // delegatecall returns 0 on error.
+                case 0 { revert(add(data, 32), returndatasize()) }
+                default { return(add(data, 32), returndatasize()) }
+        }
     }
 
     /// @notice Allows the rollup owner to set another rollup address
@@ -166,7 +196,9 @@ abstract contract AbsBridge is Initializable, DelegateCallAware, IBridge,NexusBr
         );
 
         _transferFunds(amount);
-        amountDeposited+=amount;
+        assembly {
+            sstore(AMOUNT_DEPOSITED_SLOT, add(sload(AMOUNT_DEPOSITED_SLOT), amount))
+        }
         return messageCount;
     }
 
@@ -221,7 +253,9 @@ abstract contract AbsBridge is Initializable, DelegateCallAware, IBridge,NexusBr
         // We use a low level call here since we want to bubble up whether it succeeded or failed to the caller
         // rather than reverting on failure as well as allow contract and non-contract calls
         (success, returnData) = _executeLowLevelCall(to, value, data);
-        amountWithdrawn+=value;
+        assembly {
+            sstore(AMOUNT_WITHDRAWN_SLOT, add(sload(AMOUNT_WITHDRAWN_SLOT), value))
+        }
         _activeOutbox = prevOutbox;
         emit BridgeCallTriggered(msg.sender, to, value, data);
     }
