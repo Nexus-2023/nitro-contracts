@@ -8,6 +8,7 @@ import 'hardhat-gas-reporter'
 import 'hardhat-ignore-warnings'
 // import '@tovarishfin/hardhat-yul';
 import dotenv from 'dotenv'
+require("hardhat-contract-sizer");
 
 dotenv.config()
 
@@ -99,6 +100,13 @@ module.exports = {
         ? [process.env['DEVNET_PRIVKEY']]
         : [],
     },
+    holesky: {
+      url: process.env['ENDPOINT'],
+      // gasPrice: 3500000000,
+      accounts: process.env['DEVNET_PRIVKEY']
+        ? [process.env['DEVNET_PRIVKEY']]
+        : [],
+    },
     rinkeby: {
       url: 'https://rinkeby.infura.io/v3/' + process.env['INFURA_KEY'],
       accounts: process.env['DEVNET_PRIVKEY']
@@ -150,6 +158,7 @@ module.exports = {
       nova: process.env['NOVA_ARBISCAN_API_KEY'],
       arbGoerliRollup: process.env['ARBISCAN_API_KEY'],
       arbSepolia: process.env['ARBISCAN_API_KEY'],
+      holesky: process.env['ARBISCAN_API_KEY'],
     },
     customChains: [
       {
@@ -174,6 +183,14 @@ module.exports = {
         urls: {
           apiURL: 'https://sepolia-explorer.arbitrum.io/api',
           browserURL: 'https://sepolia-explorer.arbitrum.io/',
+        },
+      },
+      {
+        network: 'holesky',
+        chainId: 17000,
+        urls: {
+          apiURL: "https://api-holesky.etherscan.io/api",
+          browserURL: "https://holesky.etherscan.io",
         },
       },
     ],
