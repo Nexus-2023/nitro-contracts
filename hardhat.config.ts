@@ -99,6 +99,18 @@ module.exports = {
         ? [process.env['DEVNET_PRIVKEY']]
         : [],
     },
+    // for mainnet
+    "base-mainnet": {
+      url: 'https://mainnet.base.org',
+      accounts: [process.env['DEVNET_PRIVKEY'] as string],
+      gasPrice: 1000000000,
+    },
+    // for Sepolia testnet
+    "base-sepolia": {
+      url: "https://sepolia.base.org",
+      accounts: [process.env['DEVNET_PRIVKEY'] as string],
+      gasPrice: 1000000000,
+    },
     rinkeby: {
       url: 'https://rinkeby.infura.io/v3/' + process.env['INFURA_KEY'],
       accounts: process.env['DEVNET_PRIVKEY']
@@ -150,6 +162,8 @@ module.exports = {
       nova: process.env['NOVA_ARBISCAN_API_KEY'],
       arbGoerliRollup: process.env['ARBISCAN_API_KEY'],
       arbSepolia: process.env['ARBISCAN_API_KEY'],
+      "base-sepolia": process.env['ETHERSCAN_API_KEY'],
+      "base-mainnet": process.env['ETHERSCAN_API_KEY'],
     },
     customChains: [
       {
@@ -176,6 +190,22 @@ module.exports = {
           browserURL: 'https://sepolia-explorer.arbitrum.io/',
         },
       },
+      {
+        network: 'base-mainnet', 
+        chainId: 8453,
+        urls: {
+          apiUrl: 'https://api.basescan.org/api',
+          browserURL: 'https://base.blockscout.com/',
+        },
+      },
+      {
+        network: 'base-sepolia', 
+        chainId: 84532,
+        urls: {
+          apiUrl: 'https://api-sepolia.basescan.org/api',
+          browserURL: 'https://sepolia.basescan.org/',
+        },
+      }
     ],
   },
   mocha: {
