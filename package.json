@@ -40,7 +40,8 @@
     "deploy-factory": "hardhat run scripts/deployment.ts",
     "deploy-eth-rollup": "hardhat run scripts/createEthRollup.ts",
     "deploy-erc20-rollup": "hardhat run scripts/createERC20Rollup.ts",
-    "upgrade-sequencer": "hardhat run scripts/upgradeSequencer.ts"
+    "upgrade-sequencer": "hardhat run scripts/upgradeSequencer.ts",
+    "upgrade-avail-bridge": "hardhat run scripts/modifyAvailBridge.ts"
   },
   "dependencies": {
     "@offchainlabs/upgrade-executor": "1.1.0-beta.0",

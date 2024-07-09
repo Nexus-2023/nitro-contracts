@@ -807,6 +807,10 @@ contract SequencerInbox is DelegateCallAware, GasRefundEnabled, ISequencerInbox 
         return dasKeySetInfo[ksHash].isValidKeyset;
     }
 
+    function setAvailBridgeAddress(IAvailDABridge availBridge_) external onlyRollupOwner {
+        availBridge = availBridge_;
+    }
+
     /// @inheritdoc ISequencerInbox
     function getKeysetCreationBlock(bytes32 ksHash) external view returns (uint256) {
         DasKeySetInfo memory ksInfo = dasKeySetInfo[ksHash];

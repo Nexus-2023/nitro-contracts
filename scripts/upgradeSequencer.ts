@@ -4,17 +4,24 @@ import {
     bytecode as UpgradeExecutorBytecode,
   } from '@offchainlabs/upgrade-executor/build/contracts/src/UpgradeExecutor.sol/UpgradeExecutor.json'
 import { maxDataSize } from "./config";
-import { deployContract } from "./deploymentUtils";
+import { _isRunningOnArbitrum, deployContract } from "./deploymentUtils";
 import { Toolkit4844 } from "../test/contract/toolkit4844";
 
 
 async function main() {
-    const ExecutorContract = "0xF9D3F8d16f7eb8A096f7ec557a7413BFeDD350A3";
-    const SequencerInboxProxy = "0x33D3A8042c4d8B8a28b51AB102d684211Bd85B80";
-    const ProxyAdmin = "0xEE5Ba29bFE35f584C06a0210405ADe7114ddC749";
+    const ExecutorContract = "0x3b7800d1d946ab4B46ae986BA20F4CCe213D55b4";
+    const SequencerInboxProxy = "0x0B0a949e7390CB3D15055383A58ce93c9FB07B9F";
+    const ProxyAdmin = "0xd801c1DD86255e27C4af45571BabAC661Fc6Af86";
     const [admin] = await ethers.getSigners();
-    const reader4844 = (await Toolkit4844.deployReader4844(admin)).address
 
+    const isOnArb = await _isRunningOnArbitrum(admin)
+    const reader4844 = isOnArb ? ethers.constants.AddressZero : (await Toolkit4844.deployReader4844(admin)).address
+
+    const proxyAdmin = await ethers.getContractFactory("ProxyAdmin");
+    const proxyAdminFactory = proxyAdmin.attach(ProxyAdmin);
+    const tx = await proxyAdminFactory.getProxyImplementation(SequencerInboxProxy)
+    console.log("implementation Address (Initial): ", tx)
+    
     const sequencerInbox = await deployContract('SequencerInbox', admin, [
         maxDataSize,
         reader4844,
@@ -27,11 +34,6 @@ async function main() {
         UpgradeExecutorABI,
         UpgradeExecutorBytecode
     )
-
-    const proxyAdmin = await ethers.getContractFactory("ProxyAdmin");
-    const proxyAdminFactory = proxyAdmin.attach(ProxyAdmin);
-    const tx = await proxyAdminFactory.getProxyImplementation(SequencerInboxProxy)
-    console.log("tx: ", tx)
 
     const upgrade = upgradeExecutorFactory.attach(ExecutorContract);
 
